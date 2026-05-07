@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>osu! Map Pool Web</title>
+    <script src="/static/app.js" defer></script>
+
+    <style>
+        body { font-family: Arial; background:#111; color:white; padding:20px; }
+        textarea { width:100%; height:120px; }
+        table { width:100%; margin-top:20px; border-collapse:collapse; }
+        td, th { border:1px solid #444; padding:8px; text-align:center; }
+        button { padding:10px; margin-top:10px; }
+    </style>
+</head>
+
+<body>
+
+<h2>osu! Map Pool Web</h2>
+
+<input id="api_key" type="password" placeholder="API Key" style="width:100%; padding:8px;"><br><br>
+
+<textarea id="beatmaps" placeholder="Enter beatmap IDs"></textarea><br>
+
+<button onclick="loadMaps()">Load Maps</button>
+<button onclick="generateCSV()">Generate CSV</button>
+
+<table id="mapTable"></table>
+
+</body>
+</html>
