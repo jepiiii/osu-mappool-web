@@ -1,30 +1,240 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>osu! Map Pool Web</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="/static/app.js" defer></script>
-
     <style>
-        body { font-family: Arial; background:#111; color:white; padding:20px; }
-        textarea { width:100%; height:120px; }
-        table { width:100%; margin-top:20px; border-collapse:collapse; }
-        td, th { border:1px solid #444; padding:8px; text-align:center; }
-        button { padding:10px; margin-top:10px; }
+        :root {
+            --bg:        #0f0f17;
+            --surface:   #1a1a2a;
+            --border:    #2e2e4a;
+            --text:      #e8e8f0;
+            --muted:     #7878a0;
+            --accent:    #ff66aa;
+
+            /* mod category colors (matching tkinter) */
+            --fm-bg:     #FF8C00;
+            --ez-bg:     #2E8B57;
+            --hd-bg:     #B8860B;
+            --hr-bg:     #DC143C;
+            --dt-bg:     #4169E1;
+
+            /* row fill colors */
+            --row-nm:    rgba(240,240,240,0.06);
+            --row-fm:    rgba(255,228,181,0.15);
+            --row-ez:    rgba(193,240,193,0.15);
+            --row-hd:    rgba(255,250,205,0.12);
+            --row-hr:    rgba(255,182,193,0.15);
+            --row-dt:    rgba(176,224,230,0.15);
+            --row-dthr:  rgba(221,160,221,0.18);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+        }
+
+        /* ── Input panel ── */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        input[type="password"], textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 10px 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="password"]:focus, textarea:focus {
+            border-color: var(--accent);
+        }
+        textarea { height: 100px; resize: vertical; }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 10px 22px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+        button:active { transform: scale(0.97); }
+
+        .btn-load {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-gen {
+            background: #2a6aff;
+            color: #fff;
+        }
+        button:hover { opacity: 0.88; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ── Status bar ── */
+        #status {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-top: 10px;
+            min-height: 18px;
+        }
+        #status.ok   { color: #66cc88; }
+        #status.err  { color: #ff6666; }
+        #status.busy { color: #ffaa44; }
+
+        /* ── Table wrapper ── */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        /* category header row */
+        .cat-row th {
+            padding: 6px 10px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: white;
+        }
+        .cat-nm { background: #1E1E2E; }
+        .cat-fm { background: var(--fm-bg); }
+        .cat-ez { background: var(--ez-bg); }
+        .cat-hd { background: var(--hd-bg); }
+        .cat-hr { background: var(--hr-bg); }
+        .cat-dt { background: var(--dt-bg); }
+
+        /* mod sub-header row */
+        .mod-row th {
+            background: #28283e;
+            color: var(--muted);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border);
+        }
+
+        /* data rows */
+        tbody tr { border-bottom: 1px solid var(--border); }
+        tbody tr:last-child { border-bottom: none; }
+        tbody td {
+            padding: 8px 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .td-title { text-align: left; max-width: 200px; }
+        .td-title strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .td-title span   { font-size: 0.75rem; color: var(--muted); }
+
+        /* row coloring by dominant mod */
+        tr.nm   { background: var(--row-nm); }
+        tr.fm   { background: var(--row-fm); }
+        tr.ez   { background: var(--row-ez); }
+        tr.hd   { background: var(--row-hd); }
+        tr.hr   { background: var(--row-hr); }
+        tr.dt   { background: var(--row-dt); }
+        tr.dthr { background: var(--row-dthr); }
+
+        /* checkboxes */
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* empty state */
+        .empty {
+            text-align: center;
+            color: var(--muted);
+            padding: 40px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
-
 <body>
 
-<h2>osu! Map Pool Web</h2>
+<h1>osu! Map Pool</h1>
+<p class="subtitle">Load beatmaps → assign mods → export XLSX with mod-adjusted stats</p>
 
-<input id="api_key" type="password" placeholder="API Key" style="width:100%; padding:8px;"><br><br>
+<div class="panel">
+    <label for="api_key">osu! API Key</label>
+    <input id="api_key" type="password" placeholder="Paste your v1 API key here">
 
-<textarea id="beatmaps" placeholder="Enter beatmap IDs"></textarea><br>
+    <br><br>
 
-<button onclick="loadMaps()">Load Maps</button>
-<button onclick="generateCSV()">Generate CSV</button>
+    <label for="beatmaps">Beatmap IDs</label>
+    <textarea id="beatmaps" placeholder="Enter beatmap IDs separated by spaces, commas, or newlines&#10;e.g. 1234567 2345678 3456789"></textarea>
 
-<table id="mapTable"></table>
+    <div class="btn-row">
+        <button class="btn-load" onclick="loadMaps()">Load Maps</button>
+        <button class="btn-gen"  onclick="generateXLSX()" id="genBtn" disabled>Generate XLSX</button>
+    </div>
+
+    <div id="status"></div>
+</div>
+
+<div class="table-wrap" id="tableWrap">
+    <div class="empty">No maps loaded yet. Enter beatmap IDs above and click Load Maps.</div>
+</div>
 
 </body>
 </html>
